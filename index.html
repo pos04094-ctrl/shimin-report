@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>시민을 위한 AI 이슈 리포트 분석기</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background: #f4f7f6; padding: 50px 20px; }
+        .search-container { max-width: 700px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
+        input { width: 100%; padding: 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.2rem; margin-bottom: 20px; box-sizing: border-box; }
+        button { width: 100%; padding: 18px; background: #27ae60; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        #report { margin-top: 30px; text-align: left; }
+        .news-box { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .news-link { color: #2c3e50; text-decoration: none; font-weight: bold; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <h1>🏛️ 이슈 리포트 분석기</h1>
+        <p style="color:#7f8c8d;">키워드만 입력하면 최근 1주일간의 이슈를 정리해 드립니다.</p>
+        <input type="text" id="keyword" placeholder="여기에 궁금한 내용을 입력하세요">
+        <button onclick="getReport()">분석 보고서 만들기</button>
+        <div id="status" style="margin-top:15px; display:none; color:#d35400;">📑 데이터를 수집하고 있습니다...</div>
+        <div id="report"></div>
+    </div>
+
+    <script>
+        async function getReport() {
+            const keyword = document.getElementById('keyword').value;
+            const status = document.getElementById('status');
+            const report = document.getElementById('report');
+
+            if(!keyword) return alert("내용을 입력해주세요.");
+            
+            status.style.display = 'block';
+            report.innerHTML = '';
+
+            try {
+                // 서버(Backend)에 데이터 요청
+                const response = await fetch(`/api/search?keyword=${encodeURIComponent(keyword)}`);
+                const data = await response.json();
+                status.style.display = 'none';
+
+                if(data.error) {
+                    report.innerHTML = `<p style="color:red; text-align:center;">${data.error}</p>`;
+                    return;
+                }
+
+                data.forEach(item => {
+                    report.innerHTML += `
+                        <div class="news-box">
+                            <a href="${item.link}" target="_blank" class="news-link">${item.title}</a>
+                            <p style="font-size:0.9em; color:#666; margin-top:5px;">${item.snippet}</p>
+                        </div>`;
+                });
+            } catch(e) {
+                status.style.display = 'none';
+                alert("오류가 발생했습니다.");
+            }
+        }
+    </script>
+</body>
+</html>
